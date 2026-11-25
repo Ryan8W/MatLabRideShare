@@ -1,0 +1,131 @@
+brick.SetColorMode(1,4);
+
+%RTurnRange = 20; %replace with whatever dist is the min to be able to turn
+%prevbumps = 0;
+backupCounter = 0;
+prevDistance = 0;
+
+while 1
+
+    distance = brick.UltrasonicDist(3);
+    bump = brick.TouchPressed(2);
+    %totalbumps = brick.TouchBumps(2);
+    if (distance > 15 && distance < 25)%isBetween(distance, 15, 25))%distance>=RTurnRange)
+        %turnRight(brick);
+         brick.MoveMotor('A',-50);
+         brick.MoveMotor('B',-50);
+         pause(0.1);
+         brick.StopAllMotors();
+    elseif(distance < 15)
+         brick.MoveMotor('A',-90);
+         brick.MoveMotor('B',-50);
+         pause(0.1);
+         brick.StopAllMotors();
+    elseif(distance > 25)
+         brick.MoveMotor('A',-50);
+         brick.MoveMotor('B',-90);
+         pause(0.1);
+         brick.StopAllMotors();
+    end
+    if (bump == 1)%totalbumps > prevbumps || bump == 1)
+        turnLeft(brick);
+        %prevbumps = totalbumps;
+    end
+    %brick.MoveMotor('A',-50);
+    %brick.MoveMotor('B',-55);
+    pause(0.5); %adjust time if the if-else statement is slow to run
+    brick.StopAllMotors();
+    colorDetect(brick);
+
+    if (prevDistance == distance)
+        backupCounter = backupCounter + 1;
+        if (backupCounter == 3)
+            brick.MoveMotor('AB', 50);
+            pause(1);
+            brick.StopAllMotors();
+            backupCounter = 0;
+            turnLeft();
+        end
+    end
+    prevDistance = distance;
+
+end
+
+function turnLeft(brick)
+    brick.MoveMotor('AB', 50);
+    pause(1);
+    brick.MoveMotor('A',-30);
+    brick.MoveMotor('B',30);
+    pause(1.5);
+   
+end
+
+function turnRight(brick)
+    brick.MoveMotor('A',30);
+    brick.MoveMotor('B',-30);
+    pause(2);
+    brick.MoveMotor('AB', -50);
+    pause(2);
+    brick.StopAllMotors();
+   
+end
+
+
+
+function detectedColor = colorDetect(brick)
+%detectedColor = "";
+color = brick.ColorRGB(1);
+r = color(1);
+g = color(2);
+b = color(3);
+
+if ((r > 200) && (r > g) && (g > b))
+    detectedColor = "Yellow";
+    disp("Yellow");
+elseif(b < g && b < r)
+    detectedColor = "Brown";
+    disp("Brown");
+elseif ((r > 1.8*g) && (r > 1.5*b))
+    detectedColor = "Red";
+    disp("Red");
+    colorResponse(detectedColor, brick);
+    %previousColor = detectedColor;
+elseif((g > 1.5*r) && (g > 1.5*b))
+    detectedColor = "Green";
+    disp("Green");
+    colorResponse(detectedColor, brick);
+elseif(b > 1.5*r)
+    detectedColor = "Blue";
+    disp("Blue");
+    colorResponse(detectedColor, brick);
+else
+    disp("No color recognized");
+    detectedColor = "NoColor";
+end
+end
+
+function colorResponse(color, brick)
+%if (color == prevColor)
+%   return;
+%else
+    if(color == "Green")
+    brick.StopAllMotors();
+    brick.beep();
+    pause(0.3);
+    brick.beep();
+    pause(0.3);
+    brick.beep();
+    %brick.MoveMotor('AB',-50);
+    %pause(1);
+elseif(color == "Blue")
+    brick.StopAllMotors();
+    brick.beep();
+    pause(0.3);
+    brick.beep();
+elseif(color == "Red")
+    brick.StopAllMotors();
+    pause(2);
+    brick.MoveMotor('AB',-50);
+    pause(0.1);
+    end
+end
